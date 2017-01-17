@@ -9,7 +9,11 @@ from setuptools import setup
 
 APP = ['Still.py']
 DATA_FILES = ['siteslist']
-OPTIONS = {'argv_emulation': True}
+OPTIONS = {
+    'argv_emulation': True,
+    'iconfile': 'still_icon.icns'
+    #  sips -s format icns still_icon.png --out still_icon.icns
+}
 
 setup(
     app=APP,
