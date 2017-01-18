@@ -10,7 +10,7 @@ from setuptools import setup
 APP = ['Still.py']
 DATA_FILES = ['siteslist']
 OPTIONS = {
-    'argv_emulation': True,
+    'argv_emulation': False,
     'iconfile': 'still_icon.icns'
     #  sips -s format icns still_icon.png --out still_icon.icns
 }
@@ -21,3 +21,5 @@ setup(
     options={'py2app': OPTIONS},
     setup_requires=['py2app'],
 )
+
+# to run setup: python3 setup.py py2app

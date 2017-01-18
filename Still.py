@@ -77,7 +77,6 @@ fe80::1%lo0 localhost
 		command += "127.0.0.1 " + item + "\n"
 	command += "\" | sudo tee /etc/hosts > /dev/null"
 
-
 	os.system(command)
 
 def clear_hosts(self):
