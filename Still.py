@@ -1,68 +1,78 @@
+"""
+To build:
+    pyinstaller --onefile --windowed --icon=still_icon.icns --add-data="siteslist:." Still.py
+To make icon:
+    sips -s format icns still_icon.png --out still_icon.icns
+"""
+
 import sys
-import pickle
 import os
+import pickle
+from PyQt5.QtWidgets import (QWidget, QGridLayout, QPushButton, QApplication, QListWidget, QLineEdit)
 
-if sys.version_info < (3, 0):
-	# Python 2
-	import Tkinter as tk
-else:
-	# Python 3
-	import tkinter as tk
+class Still(QWidget):
 
-class App:
-	def __init__(self, master):
-		# frame = tk.Frame(master)
-		# frame.pack()
+    def __init__(self):
+        super().__init__()
 
-		# try/except
-		try:
-			with open('siteslist', 'rb') as data:
-				self.sites = pickle.load(data)
-		except:
-			self.sites = []
+        self.initUI()
 
-		self.add = tk.Button(master, text="Add Site", command=self.add_site)
-		self.add.grid(row=0, column=1)
+    def initUI(self):
 
-		self.remove = tk.Button(master, text="Remove Site", command=self.remove_site)
-		self.remove.grid(row=1, column=1)
+        try:
+            with open('siteslist', 'rb') as data:
+                self.sites = pickle.load(data)
+        except:
+            self.sites = []
 
-		self.enter = tk.Entry(master)
-		self.enter.grid(row=0, column=0)
+        grid = QGridLayout()
+        self.setLayout(grid)
 
-		self.listbox = tk.Listbox(master)
-		self.listbox.grid(row=1, column=0)
-		for item in self.sites:
-			self.listbox.insert("end", item)
+        add = QPushButton('Add Site')
+        add.clicked.connect(self.add_site)
+        grid.addWidget(add, 0, 1)
 
-		self.block = tk.Button(master, text="Block Sites", command=self.block_sites)
-		self.block.grid(row=2, column=1)
+        remove = QPushButton('Remove Site')
+        remove.clicked.connect(self.remove_site)
+        grid.addWidget(remove, 1, 1)
 
-		self.unblock = tk.Button(master, text="Unblock Sites", command=self.unblock_sites)
-		self.unblock.grid(row=3, column=1)
+        block = QPushButton('Block Sites')
+        block.clicked.connect(self.update_hosts)
+        grid.addWidget(block, 2, 1)
 
-	def add_site(self):
-		s = self.enter.get()
-		self.listbox.insert("end", s)
-		self.enter.delete(0, 'end')
-		self.sites.append(s)
-		update_siteslist(self)
+        unblock = QPushButton('Unblock Sites')
+        unblock.clicked.connect(self.clear_hosts)
+        grid.addWidget(unblock, 3, 1)
 
-	def remove_site(self):
-		s = self.listbox.get("anchor")
-		self.listbox.delete("anchor")
-		self.sites.remove(s)
-		update_siteslist(self)
+        self.listbox = QListWidget()
+        grid.addWidget(self.listbox, 1, 0)
+        for item in self.sites:
+            self.listbox.addItem(item)
 
-	def block_sites(self):
-		update_hosts(self)
+        self.entry = QLineEdit()
+        grid.addWidget(self.entry, 0, 0)
 
-	def unblock_sites(self):
-		clear_hosts(self)
+        self.move(300, 150)
+        self.setWindowTitle('Still')
+        self.show()
 
-def update_hosts(self):
-	command = """
-	pw="$(osascript -e 'Tell application "System Events" to display dialog "Password:" default answer "" with hidden answer' -e 'text returned of result' 2>/dev/null)" && echo $pw | sudo -S echo "
+    def add_site(self):
+        s = self.entry.text()
+        self.entry.clear()
+        self.listbox.addItem(s)
+        self.sites.append(s)
+        self.update_siteslist
+        print(self.sites)
+
+    def remove_site(self):
+        s = self.listbox.currentItem().text()
+        self.listbox.takeItem(self.listbox.currentRow())
+        self.sites.remove(s)
+        update_siteslist(self)
+
+    def update_hosts(self):
+        command = """
+        pw="$(osascript -e 'Tell application "System Events" to display dialog "Password:" default answer "" with hidden answer' -e 'text returned of result' 2>/dev/null)" && echo $pw | sudo -S echo "
 # Host Database !
 #
 # localhost is used to configure the loopback interface
@@ -73,15 +83,15 @@ def update_hosts(self):
 ::1             localhost
 fe80::1%lo0 localhost
 """
-	for item in self.sites:
-		command += "127.0.0.1 " + item + "\n"
-	command += "\" | sudo tee /etc/hosts > /dev/null"
+        for item in self.sites:
+            command += "127.0.0.1 " + item + "\n"
+        command += "\" | sudo tee /etc/hosts > /dev/null"
 
-	os.system(command)
+        os.system(command)
 
-def clear_hosts(self):
-	command = """
-	pw="$(osascript -e 'Tell application "System Events" to display dialog "Password:" default answer "" with hidden answer' -e 'text returned of result' 2>/dev/null)" && echo $pw | sudo -S echo "
+    def clear_hosts(self):
+        command = """
+        pw="$(osascript -e 'Tell application "System Events" to display dialog "Password:" default answer "" with hidden answer' -e 'text returned of result' 2>/dev/null)" && echo $pw | sudo -S echo "
 # Host Database !
 #
 # localhost is used to configure the loopback interface
@@ -92,21 +102,16 @@ def clear_hosts(self):
 ::1             localhost
 fe80::1%lo0 localhost
 """
-	command += "\" | sudo tee /etc/hosts > /dev/null"
-	os.system(command)
+        command += "\" | sudo tee /etc/hosts > /dev/null"
+        os.system(command)
 
-def update_siteslist(self):
-	with open('siteslist', 'wb') as data:
-		pickle.dump(self.sites, data)
-
-root = tk.Tk()
-root.title("Still")
-app = App(root)
-root.mainloop()
+    def update_siteslist(self):
+        with open('siteslist', 'wb') as data:
+            pickle.dump(self.sites, data)
 
 
-# root = tk.Tk()
-# root.title("Sandwich")
-# tk.Button(root, text="Add Site").pack()
-# tk.Button(root, text="Remove Site").pack()
-# tk.mainloop()
+if __name__ == '__main__':
+
+    app = QApplication(sys.argv)
+    ex = Still()
+    sys.exit(app.exec_())
